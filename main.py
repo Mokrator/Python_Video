@@ -5,7 +5,7 @@ import os
 inFile = r"D:\Videos\Novatek\EVENT\system\scriptedthings\pool Rene.mp4" # 1920x1080
 
 ouFile = f"{inFile}.output.mp4" # outputfile get's deleted before creation!
-loFile = r".\arrow.mp4" # 512x512
+loFile = r"arrow.mp4" # 512x512
 
 def delete_file_if_exists(myfile):
 	if os.path.isfile(myfile):
