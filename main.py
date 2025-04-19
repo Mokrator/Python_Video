@@ -23,6 +23,8 @@ def delete_temp_files(target_file):
 	delete_file_if_exists(target_file + '.tm2')
 
 def append_or_create(output, target_file):
+	global infoText
+	print(infoText)
 	delete_temp_files(target_file)
 	if os.path.isfile(target_file):
 		os.rename(target_file, target_file + '.tm1')
@@ -36,14 +38,19 @@ def append_or_create(output, target_file):
 		delete_temp_files(target_file)
 
 def append_video_only(in_file, out_file, start_time, duration):
+	global counter, infoText
+	counter += 1
 	ff = ffmpeg.input(in_file, ss=start_time, t=duration)
+	infoText = f"added {duration:.1f}s {start_time:.1f} to {start_time+duration:.1f} Video-Part {counter} only appending."
 	append_or_create(ff.output(out_file, vcodec='h264_nvenc'), out_file)
 
 def speed_manipulation(in_file, out_file, start_time, duration, speed_factor, logo_file):
+	global counter, infoText
+	counter += 1
 	ff = ffmpeg.input(in_file, ss=start_time, t=duration)
 	ff = ff.filter('setpts', f'{1/speed_factor}*PTS') # speed up main video
 	if logo_file:
-		print("Logo File on x")
+		infoText = f"added {duration/speed_factor:.1f}s {start_time:.1f} to {start_time+duration:.1f} Video-Part {counter} with a Logo and Speed {speed_factor:.1f}."
 		logo = (
 			ffmpeg.input(logo_file, stream_loop=-1, ss=0, t=duration/speed_factor)  # Logo must be calculated with speedfactor
 			.video
@@ -54,11 +61,16 @@ def speed_manipulation(in_file, out_file, start_time, duration, speed_factor, lo
 		if (speed_factor < 1):
 			logo = ffmpeg.hflip(logo)
 		ff = ff.overlay(logo, x = 704, y = 538,  enable=f'between(t,0,{start_time+duration})' )
+	else:
+		infoText = f"added {duration/speed_factor:.1f}s {start_time:.1f} to {start_time+duration:.1f} Video-Part {counter} without Logo and Speed {speed_factor:.1f}."
 	append_or_create(ff.output(out_file, vcodec='h264_nvenc'), out_file)
 
+counter = 0
+infoText = ""
 
 delete_file_if_exists(ouFile)
 
+print("\r\nstarting work.\r\n")
 start = time.time()
 
 # maybe make this part more configureable like a json-file with a commandlist...
@@ -71,4 +83,5 @@ speed_manipulation(inFile, ouFile, 8.4, 1.1, 0.2, None) # 1/5th speed without lo
 
 end = time.time()
 
-print(f"Duration: {end - start:.1f} s")
+print("\r\nwriting finished.")
+print(f"duration: {end - start:.1f} s")
